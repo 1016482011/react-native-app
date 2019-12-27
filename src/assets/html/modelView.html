@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		html,
+		body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+		}
+
+		#root {
+			height: 100%;
+			width: 100%;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="root"></div>
+	<script src='https://gitee.com/yunbinBIM/sdk/raw/master/js/model.js'></script>
+	<script>
+		window.onload = function () {
+			document.addEventListener('message', function (msg) {
+				try {
+					window.postMessage(JSON.stringify({
+						type: 1,
+						msg: '资源加载完成，请求模型中'
+					}))
+					var data = JSON.parse(msg.data)
+					// alert(data.domain)
+					var modelViewInit = new ModelView('root', {
+						// 底部按钮配置
+						buttonVisiable: false,
+						// 是否显示树
+						treeVisiable: false,
+						// 是否展开树
+						treeOpen: false,
+						// 模型服务域名
+						domain: data.domain,
+						// 模型组名称
+						models: data.modelGroup,
+						// 模型类别
+						modelType: data.modelType,
+						// 按codes加载模型
+						loadModelByIds: {
+							enable: true,
+							onLoad: v => {
+								window.postMessage(JSON.stringify({
+									type: 4,
+									msg: '模型加载完毕'
+								}))
+								v.showMarkers([data.data])
+							},
+							onError: v => {
+								window.postMessage(JSON.stringify({
+									type: 3,
+									msg: '模型加载失败'
+								}))
+							},
+							ids: [data.data.bimMemberId],
+						},
+					})
+				} catch (e) {
+					window.postMessage(JSON.stringify({
+						type: 0,
+						msg: '模型加载错误'
+					}))
+				}
+			});
+		}
+	</script>
+</body>
+
+</html>
